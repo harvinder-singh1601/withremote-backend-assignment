@@ -1,0 +1,40 @@
+# Two local Postgres instances mirroring the two Supabase projects in production.
+# Problem 1 (sync) -> :5433, Problem 2 (metrics) -> :5434. Fully separate stores.
+services:
+  postgres-sync:
+    image: postgres:16-alpine
+    container_name: withremote-pg-sync
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sync
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg-sync-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sync"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  postgres-metrics:
+    image: postgres:16-alpine
+    container_name: withremote-pg-metrics
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: metrics
+    ports:
+      - "5434:5432"
+    volumes:
+      - pg-metrics-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d metrics"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pg-sync-data:
+  pg-metrics-data:

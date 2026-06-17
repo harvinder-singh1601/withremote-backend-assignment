@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Two Postgres services mirror the two Supabase projects (sync + metrics).
+    services:
+      postgres-sync:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sync
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sync"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      postgres-metrics:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: metrics
+        ports: ['5434:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d metrics"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      NODE_ENV: test
+      SOURCE_MODE: fixture
+      DATABASE_URL_SYNC: postgres://postgres:postgres@localhost:5433/sync
+      DATABASE_URL_METRICS: postgres://postgres:postgres@localhost:5434/metrics
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run migrate
+      - run: npm test

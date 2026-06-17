@@ -1,0 +1,40 @@
+# Render Blueprint — one free web service. The two databases live on Supabase
+# (external), so no Render database is provisioned here.
+#
+# Deploy: push to GitHub → Render → New → Blueprint → pick this repo, then fill in
+# the env vars marked `sync: false` (they are not committed).
+services:
+  - type: web
+    name: withremote-backend
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    # Run both migration sets, then boot. Migrations are idempotent (CREATE IF NOT
+    # EXISTS + a _migrations ledger), so re-deploys are safe.
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SOURCE_MODE
+        value: auto # live per-source when its key is set, else recorded fixtures
+      - key: GOOGLE_CALENDAR_ID
+        value: primary
+      # ── secrets — set these in the Render dashboard ──────────────────────────
+      - key: DATABASE_URL_SYNC
+        sync: false
+      - key: DATABASE_URL_METRICS
+        sync: false
+      - key: HUBSPOT_PRIVATE_APP_TOKEN
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REFRESH_TOKEN
+        sync: false
