@@ -3,6 +3,7 @@ import { env } from '../../config/env';
 import type { NormalizedRecord } from '../domain/normalized';
 import { StaleCursorError, type CursorType, type DataSource, type FetchResult } from '../ports/source';
 import { googleEventToNormalized } from './normalize';
+import { withRetry } from './retry';
 
 export function hasGoogleCredential(): boolean {
   return Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_REFRESH_TOKEN);
@@ -54,12 +55,17 @@ export class GoogleCalendarSource implements DataSource {
     let pageToken: string | undefined;
     let syncToken: string | null | undefined;
     do {
-      const res = await this.calendar.events.list({
-        calendarId: this.calendarId,
-        maxResults: 250,
-        ...params,
-        pageToken,
-      });
+      // Retry transient socket failures (e.g. "Premature close" reaching Google's
+      // OAuth/token endpoint). A 410 (stale syncToken) carries a status, so it is
+      // NOT retried — it propagates to trigger the full-backfill fallback.
+      const res = await withRetry(() =>
+        this.calendar.events.list({
+          calendarId: this.calendarId,
+          maxResults: 250,
+          ...params,
+          pageToken,
+        }),
+      );
       raw.push(...(res.data.items ?? []));
       pageToken = res.data.nextPageToken ?? undefined;
       syncToken = res.data.nextSyncToken ?? syncToken;
