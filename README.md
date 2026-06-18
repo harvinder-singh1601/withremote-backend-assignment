@@ -8,7 +8,7 @@ Two backend problems, one TypeScript service, **two fully separate databases**:
 > **Backend-only.** No UI. Every endpoint is documented and runnable from the built-in **Swagger UI at `/docs`**.
 
 - **Live deployment:** `https://withremote-backend.onrender.com` (Swagger at `https://withremote-backend.onrender.com/docs`)
-- **AI usage / chat transcript:** `<AI_SHARE_LINK>` (see [AI usage](#ai-usage))
+- **AI usage:** see [AI usage](#ai-usage)
 
 ---
 
@@ -180,4 +180,12 @@ All free tier. Each is optional — without a key, that source uses fixtures. Se
 
 ## AI usage
 
-Built with **Claude (Claude Code)**. I directed the architecture (ports & adapters, two-database split, allow-list-not-exclusion, the no-rogue-summation guard), reviewed every file, and verified behavior by running the suite and the live endpoints. Full transcript: `<AI_SHARE_LINK>`.
+Built with **Claude (Claude Code)**, used end-to-end under my direction and review:
+
+- **Planning & architecture** — AI-assisted in shaping the design: ports-and-adapters, two separate databases (one per problem), the allow-list (not exclusion-list) "collected" definition, and the no-rogue-summation drift guard.
+- **Third-party connectors** — AI built the source adapters for HubSpot (CRM), Stripe (payments), and Google Calendar (events), including incremental cursors, webhooks, and the stale-cursor → full-backfill fallback.
+- **Tests** — AI wrote the test suite: normalization, idempotency, cursor-fallback, fault isolation, allow-list completeness, summary ≡ breakdown agreement, and the drift guard.
+- **Debugging** — AI helped diagnose and fix real issues during deployment: the Google Calendar sync failing on Render with `Premature close` (fixed by switching from `fetch`/undici to Node's `https` transport), and Stripe's Charges API being disabled for India (worked around using the PaymentIntents off-session + customer flow).
+- **Deployment** — AI scaffolded the Render blueprint and provisioned the two Supabase projects.
+
+I reviewed the code, ran the test suite, and verified every behavior against the live endpoints.
