@@ -121,11 +121,35 @@ export async function syncRoutes(app: FastifyInstance): Promise<void> {
     {
       schema: {
         tags: ['webhooks'],
-        summary: 'Stripe webhook — idempotent. Firing the same event twice is a no-op.',
+        summary: 'Stripe webhook — idempotent. POST the example twice → written 1 then 0.',
+        body: {
+          type: 'object',
+          description: 'A Stripe event. The pre-filled example is a charge.succeeded — Execute it twice to prove idempotency.',
+          additionalProperties: true,
+          example: {
+            type: 'charge.succeeded',
+            data: {
+              object: {
+                id: 'ch_demo_video',
+                object: 'charge',
+                amount: 2599,
+                currency: 'usd',
+                status: 'succeeded',
+                created: 1750000000,
+                description: 'Demo webhook charge',
+              },
+            },
+          },
+        },
       },
     },
     async (req: FastifyRequest, reply) => {
       const rawBody = (req as unknown as { rawBody?: Buffer }).rawBody ?? Buffer.from('');
+      if (rawBody.length === 0) {
+        return reply
+          .status(400)
+          .send({ error: 'Empty body — POST a Stripe event JSON (use the example shown for this endpoint).' });
+      }
       const signature = req.headers['stripe-signature'] as string | undefined;
       try {
         return await handleStripeWebhook(syncDb, rawBody, signature);
@@ -142,6 +166,12 @@ export async function syncRoutes(app: FastifyInstance): Promise<void> {
       schema: {
         tags: ['webhooks'],
         summary: 'HubSpot webhook — hydrates + upserts contacts idempotently',
+        body: {
+          type: 'array',
+          description: 'HubSpot webhook events; each {objectId} contact is hydrated via the API and upserted.',
+          items: { type: 'object', additionalProperties: true },
+          example: [{ subscriptionType: 'contact.propertyChange', objectId: 101, propertyName: 'lastname' }],
+        },
       },
     },
     async (req) => handleHubspotWebhook(syncDb, req.body),
