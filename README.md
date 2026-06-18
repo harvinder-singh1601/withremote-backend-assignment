@@ -7,7 +7,7 @@ Two backend problems, one TypeScript service, **two fully separate databases**:
 
 > **Backend-only.** No UI. Every endpoint is documented and runnable from the built-in **Swagger UI at `/docs`**.
 
-- **Live deployment:** `<RENDER_URL>` (Swagger at `<RENDER_URL>/docs`)
+- **Live deployment:** `https://withremote-backend.onrender.com` (Swagger at `https://withremote-backend.onrender.com/docs`)
 - **AI usage / chat transcript:** `<AI_SHARE_LINK>` (see [AI usage](#ai-usage))
 
 ---
