@@ -1,4 +1,11 @@
+import dns from 'node:dns';
 import { z } from 'zod';
+
+// Some cloud hosts (incl. Render's free tier) have flaky IPv6 egress to Google's
+// API endpoints, which surfaces as "Premature close" when fetching oauth2/token.
+// Prefer IPv4 for all outbound DNS — harmless for Stripe/Supabase/HubSpot (IPv4),
+// and it makes Google Calendar reliable. Runs before any network client is used.
+dns.setDefaultResultOrder('ipv4first');
 
 // Load .env if present (no-op in production where vars are set directly).
 // process.loadEnvFile is built into Node >= 20.12 — no dotenv dependency needed.
