@@ -6,3 +6,6 @@ dist/
 .DS_Store
 coverage/
 google-token.json
+
+# assignment brief — keep local only, not in repo
+*.docx
