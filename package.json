@@ -13,6 +13,8 @@
     "migrate:sync": "tsx scripts/migrate-sync.ts",
     "migrate:metrics": "tsx scripts/migrate-metrics.ts",
     "seed": "tsx scripts/seed.ts",
+    "seed:hubspot": "tsx scripts/seed-hubspot.ts",
+    "seed:stripe": "tsx scripts/seed-stripe.ts",
     "get-google-token": "tsx scripts/get-google-token.ts",
     "test": "vitest run",
     "test:watch": "vitest",
