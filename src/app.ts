@@ -18,6 +18,9 @@ export async function buildApp(): Promise<FastifyInstance> {
         : { level: env.LOG_LEVEL },
     // Webhook signature verification needs the exact raw body bytes.
     bodyLimit: 5 * 1024 * 1024,
+    // Allow the OpenAPI `example` keyword in route schemas so Swagger can
+    // pre-fill request bodies without ajv's strict mode rejecting it.
+    ajv: { customOptions: { keywords: ['example'] } },
   });
 
   // Keep the raw JSON bytes on the request (req.rawBody) while still parsing JSON,
